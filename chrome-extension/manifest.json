@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "Youtube stats",
+  "version": "0.0.1",
+  "description": "This is a youtube stats",
+  "short_name": "ytstats",
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_title": "Most used video"
+  },
+  "icons": {
+    "128": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://ennc0d3.github.io/"
+      ],
+      "js": [
+        "jquery-3.5.1.min.js",
+        "content.js"
+      ]
+    }
+  ]
+}
