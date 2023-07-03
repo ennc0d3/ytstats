@@ -1,83 +1,77 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
-	"net/http"
 
-	"os"
+	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 
-	"google.golang.org/api/googleapi/transport"
-	"google.golang.org/api/youtube/v3"
-)
+	"go.opentelemetry.io/otel/exporters/prometheus"
 
-var (
-	query      = flag.String("query", "Google", "Search term")
-	maxResults = flag.Int64("max-results", 25, "Max YouTube results")
+	"go.opentelemetry.io/otel/sdk/trace"
+
+	"go.opentelemetry.io/otel/sdk/metric"
+	//"go.opentelemetry.io/otel/sdk/resource"
+        //semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+
+
+	"github.com/ennc0d3/utube-stats/internal/api"
 )
 
 func main() {
+	// Configure zerolog as the global logger
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	//log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	apiKey := os.Getenv("API_KEY")
-	if apiKey == "" {
-		log.Fatal("Provide a valid google developer api key")
-	}
-
-	flag.Parse()
-
-	client := &http.Client{
-		Transport: &transport.APIKey{Key: apiKey},
-	}
-
-	service, err := youtube.New(client)
+	// Initialize OpenTelemetry tracing
+	err := initTracingExporter()
 	if err != nil {
-		log.Fatalf("Error creating new YouTube client: %v", err)
+		log.Fatal("Failed to initialize tracing exporter")
 	}
 
-	// Make the API call to YouTube.
-	call := service.Search.List("id,snippet").
-		Q(*query).
-		MaxResults(*maxResults)
-	response, err := call.Do()
-	handleError(err, "")
-
-	// Group video, channel, and playlist results in separate lists.
-	videos := make(map[string]string)
-	channels := make(map[string]string)
-	playlists := make(map[string]string)
-
-	// Iterate through each item and add it to the correct list.
-	for _, item := range response.Items {
-		switch item.Id.Kind {
-		case "youtube#video":
-			videos[item.Id.VideoId] = item.Snippet.Title
-		case "youtube#channel":
-			channels[item.Id.ChannelId] = item.Snippet.Title
-		case "youtube#playlist":
-			playlists[item.Id.PlaylistId] = item.Snippet.Title
-		}
-	}
-
-	printIDs("Videos", videos)
-	printIDs("Channels", channels)
-	printIDs("Playlists", playlists)
-}
-
-// Print the ID and title of each result in a list as well as a name that
-// identifies the list. For example, print the word section name "Videos"
-// above a list of video search results, followed by the video ID and title
-// of each matching video.
-func printIDs(sectionName string, matches map[string]string) {
-	fmt.Printf("%v:\n", sectionName)
-	for id, title := range matches {
-		fmt.Printf("[%v] %v\n", id, title)
-	}
-	fmt.Printf("\n\n")
-}
-
-func handleError(err error, msg string) {
+	// Initialize Prometheus metrics
+	err = initMetricExporter()
 	if err != nil {
-		log.Fatalf("msg: %s, err:%s", err, msg)
+		// zerolog log.Fatal().Err(err).Msg("Failed to initialize metric exporter")
+		log.Fatal("Failed to initialize metric exporter")
 	}
+
+	// Start the server
+	api.StartServer()
 }
+
+func initTracingExporter() error {
+	// Create a new stdout exporter for tracing
+	traceExporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
+	if err != nil {
+		return err
+	}
+
+	// Create a new trace provider with the exporter and a simple span processor
+	tp := trace.NewTracerProvider(
+		trace.WithSyncer(traceExporter),
+		trace.WithSampler(trace.AlwaysSample()),
+		)
+
+	// Set the global trace provider
+	otel.SetTracerProvider(tp)
+
+	return nil
+}
+
+func initMetricExporter() error {
+	// Create a new Prometheus exporter for metrics
+
+	metricExporter, err := prometheus.New()
+	if err != nil {
+		return err
+	}
+
+	provider := metric.NewMeterProvider(metric.WithReader(metricExporter))
+        provider.Meter("youtube-info-api")
+
+	return nil
+}
+
