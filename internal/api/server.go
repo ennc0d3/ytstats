@@ -3,16 +3,16 @@ package api
 import (
 	"net/http"
 
+	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/hlog"
 	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
 
-	
-
-
-
+var (
+	serverPort = 8998
 )
 
 func SetupRoutes(router *mux.Router) {
@@ -30,10 +30,10 @@ func StartServer() {
 	router.Path("/metrics").Handler(promhttp.Handler())
 
 	// Start the server
-	log.Info().Msg("Starting server on :8080")
-	err := http.ListenAndServe(":8080", router)
+	log.Info().Msgf("Starting server on %d", serverPort)
+	addr := fmt.Sprintf(":%d", serverPort)
+	err := http.ListenAndServe(addr, router)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to start server")
 	}
 }
-

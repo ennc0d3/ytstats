@@ -13,10 +13,9 @@ import (
 
 	"go.opentelemetry.io/otel/sdk/metric"
 	//"go.opentelemetry.io/otel/sdk/resource"
-        //semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	//semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
-
-	"github.com/ennc0d3/utube-stats/internal/api"
+	"github.com/ennc0d3/yt-stats/internal/api"
 )
 
 func main() {
@@ -53,7 +52,7 @@ func initTracingExporter() error {
 	tp := trace.NewTracerProvider(
 		trace.WithSyncer(traceExporter),
 		trace.WithSampler(trace.AlwaysSample()),
-		)
+	)
 
 	// Set the global trace provider
 	otel.SetTracerProvider(tp)
@@ -70,8 +69,7 @@ func initMetricExporter() error {
 	}
 
 	provider := metric.NewMeterProvider(metric.WithReader(metricExporter))
-        provider.Meter("youtube-info-api")
+	provider.Meter("youtube-info-api")
 
 	return nil
 }
-

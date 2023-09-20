@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"google.golang.org/api/googleapi/transport"
-	"google.golang.org/api/youtube/v3"
+	youtube "google.golang.org/api/youtube/v3"
 	"net/http"
 )
 
@@ -36,4 +36,3 @@ func GetVideoStatistics(videoID string) (*VideoStatistics, error) {
 
 	return statistics, nil
 }
-
