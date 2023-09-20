@@ -16,7 +16,7 @@ var (
 )
 
 func SetupRoutes(router *mux.Router) {
-	router.HandleFunc("/video-info", handleVideoInfo).Methods(http.MethodGet)
+	router.HandleFunc("/stats", handleVideoInfo).Methods(http.MethodGet)
 	// Setup other routes...
 }
 

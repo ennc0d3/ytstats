@@ -3,36 +3,38 @@ package api
 import (
 	"os"
 
-	"google.golang.org/api/googleapi/transport"
-	youtube "google.golang.org/api/youtube/v3"
-	"net/http"
+	"context"
+	"google.golang.org/api/option"
+	"google.golang.org/api/youtube/v3"
 )
 
 type VideoStatistics struct {
-	Views uint64
+	rawStats *youtube.VideoStatistics
 	// Add other statistics fields as needed
 }
 
+//google.golang.org/api/youtube/v3#VideoStatistics
+
 func GetVideoStatistics(videoID string) (*VideoStatistics, error) {
-	youtubeService, err := youtube.New(&http.Client{
-		Transport: &transport.APIKey{Key: os.Getenv("YOUTUBE_API_KEY")},
-	})
+
+	ctx := context.TODO()
+	apiKey := os.Getenv("YTSTATS_API_KEY")
+
+	youtubeService, err := youtube.NewService(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
 		return nil, err
 	}
 
-	kind := []string{"statistics"}
+	part := []string{"statistics"}
 
-	videoCall := youtubeService.Videos.List(kind).Id(videoID)
-	videoResponse, err := videoCall.Do()
+	videoListCall := youtubeService.Videos.List(part).Id(videoID)
+	videoListResp, err := videoListCall.Do()
 	if err != nil {
 		return nil, err
 	}
 
-	statistics := &VideoStatistics{
-		Views: videoResponse.Items[0].Statistics.ViewCount,
-		// Extract other statistics fields as needed
-	}
+	rawStats := videoListResp.Items[0].Statistics
+	statistics := &VideoStatistics{rawStats: rawStats}
 
 	return statistics, nil
 }

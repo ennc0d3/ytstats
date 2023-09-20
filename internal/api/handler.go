@@ -1,9 +1,9 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
-	"context"
 
 	"github.com/rs/zerolog/hlog"
 	"go.opentelemetry.io/otel"
@@ -43,12 +43,11 @@ func handleVideoInfo(w http.ResponseWriter, r *http.Request) {
 	// Increment the video views counter
 	videoViewsCounter.Add(context.Background(), 1)
 
-
 	// ...
-	hlog.FromRequest(r).Info().Msgf("stats: %w", statistics)
+	hlog.FromRequest(r).Info().Msgf("stats: %v", *statistics)
 
 	// Convert the response struct to JSON
-	jsonResponse, err := json.Marshal(statistics)
+	jsonResponse, err := json.Marshal(statistics.rawStats)
 	if err != nil {
 		hlog.FromRequest(r).Error().Err(err).Msg("failed to marshal JSON response")
 		http.Error(w, "failed to marshal JSON response", http.StatusInternalServerError)
@@ -59,4 +58,3 @@ func handleVideoInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
 }
-
