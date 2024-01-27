@@ -13,16 +13,54 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_REGISTRY: docker.io
+      IMAGE_REPOSITORY: ${{ github.repository_owner }}
+
     steps:
     - uses: actions/checkout@v3
 
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.20'
+        go-version: '1.21'
+
+    - name: Set up version suffix
+      id: version
+      run: echo "::set-output name=suffix::0.0.1-$GITHUB_RUN_NUMBER"
 
     - name: Build
       run: go build -v ./...
 
     - name: Test
-      run: go test -v ./...
+      run: go test -cover -coverprofile coverage.out -v ./...
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: 'v1.42.1'
+        args: "run --timeout=10m"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2.1.0
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+        flags: unittests
+        files: ./coverage.out
+
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: ${{env.IMAGE_REGISTRY}}/${{env.IMAGE_REPOSITORY}}/ytstats:${{steps.version.outputs.suffix}}
+

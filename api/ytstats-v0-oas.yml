@@ -1,0 +1,36 @@
+info:
+  description: |-
+  info:
+    description: "An openapi spec for the ytstat service"
+
+paths:
+  /stats/{id}:
+    get:
+      summary: Get stats by video ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the stats to retrieve
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  views:
+                    type: integer
+                  likes:
+                    type: integer
+                  dislikes:
+                    type: integer
+                  comments:
+                    type: integer
+        "404":
+          description: Not found

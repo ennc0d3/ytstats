@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel"
@@ -22,19 +23,18 @@ func main() {
 	// Configure zerolog as the global logger
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	//log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	logger := log.New(os.Stderr, "", 0)
+	logger = log.New(zerolog.ConsoleWriter{Out: os.Stderr}, "", 0)
 
 	// Initialize OpenTelemetry tracing
 	err := initTracingExporter()
 	if err != nil {
-		log.Fatal("Failed to initialize tracing exporter")
 	}
 
 	// Initialize Prometheus metrics
 	err = initMetricExporter()
 	if err != nil {
-		// zerolog log.Fatal().Err(err).Msg("Failed to initialize metric exporter")
-		log.Fatal("Failed to initialize metric exporter")
+		logger.Fatal("failed to initialize Prometheus metrics")
 	}
 
 	// Start the server
