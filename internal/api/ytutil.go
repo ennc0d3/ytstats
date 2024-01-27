@@ -4,8 +4,9 @@ import (
 	"os"
 
 	"context"
+
 	"google.golang.org/api/option"
-	"google.golang.org/api/youtube/v3"
+	youtube "google.golang.org/api/youtube/v3"
 )
 
 type VideoStatistics struct {
