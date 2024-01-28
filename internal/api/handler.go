@@ -56,5 +56,9 @@ func handleVideoInfo(w http.ResponseWriter, r *http.Request) {
 
 	// Set the Content-Type header and write the JSON response
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResponse)
+	if _, err := w.Write(jsonResponse); err != nil {
+		hlog.FromRequest(r).Error().Err(err).Msg("failed to write JSON response")
+		http.Error(w, "failed to write JSON response", http.StatusInternalServerError)
+		return
+	}
 }

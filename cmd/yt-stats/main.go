@@ -23,12 +23,12 @@ func main() {
 	// Configure zerolog as the global logger
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	logger := log.New(os.Stderr, "", 0)
-	logger = log.New(zerolog.ConsoleWriter{Out: os.Stderr}, "", 0)
+	logger := log.New(zerolog.ConsoleWriter{Out: os.Stderr}, "", 0)
 
 	// Initialize OpenTelemetry tracing
 	err := initTracingExporter()
 	if err != nil {
+		logger.Fatal("failed to initialize OpenTelemetry tracing")
 	}
 
 	// Initialize Prometheus metrics
