@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_REGISTRY: docker.io
-      IMAGE_REPOSITORY: ${{ github.repository_owner }}
+      IMAGE_REPOSITORY: ennc0d3
 
     steps:
     - uses: actions/checkout@v3
@@ -46,7 +46,7 @@ jobs:
 
     - name: Set up version suffix
       id: version
-      run: echo "name=0.0.1-$GITHUB_RUN_NUMBER" >> ${GITHUB_OUTPUT}
+      run: echo "name=0.0.1-$GITHUB_RUN_NUMBER" >> $GITHUB_OUTPUT
 
     - name: Build
       run: go build -v ./...
@@ -74,5 +74,5 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{env.IMAGE_REGISTRY}}/${{env.IMAGE_REPOSITORY}}/ytstats:${{steps.version.outputs.suffix}}
+        tags: ${{env.IMAGE_REGISTRY}}/${{env.IMAGE_REPOSITORY}}/ytstats:${{ steps.version.outputs.name }}
 
