@@ -22,10 +22,10 @@ func handleVideoInfo(w http.ResponseWriter, r *http.Request) {
 	_, span := tracer.Start(r.Context(), "handleVideoInfo")
 	defer span.End()
 
-	videoID := r.URL.Query().Get("video_id")
+	videoID := r.URL.Query().Get("videoid")
 	if videoID == "" {
-		hlog.FromRequest(r).Error().Msg("video_id parameter is missing")
-		http.Error(w, "video_id parameter is missing", http.StatusBadRequest)
+		hlog.FromRequest(r).Error().Msg("videoid parameter is missing")
+		http.Error(w, "videoid parameter is missing", http.StatusBadRequest)
 		return
 	}
 
